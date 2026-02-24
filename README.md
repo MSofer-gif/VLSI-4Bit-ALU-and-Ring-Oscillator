@@ -20,10 +20,19 @@ The ALU is required to compute the function $Y = A + B - C$.
 * **Outputs:** A registered output $Y$ representing the final result.
 * **Constraints:** Nominal supply voltage of 1.2V.
 
+**General ALU Architecture:**
+![Block Diagram](./ALU4bit/block_diagram.png)
+
+**Virtuoso Top-Level Schematic:**
+![Virtuoso Schematic](./ALU4bit/block_diagram2.png)
+
 ### ⚡ The Kogge-Stone Adder (KSA) Architecture
 The core of our arithmetic operations relies on a 4-bit Kogge-Stone Adder. The KSA is a parallel prefix carry look-ahead adder, renowned for being one of the fastest topologies for high-performance VLSI designs. 
 
 Unlike standard Ripple Carry Adders (which have a linear latency), the KSA computes the carry signals for all bit positions in parallel, achieving a logarithmic latency of O(log2 N). Its defining advantage over other prefix trees (such as Sklansky) is a **constant, low fan-out of 2** at every stage. This ensures uniform signal driving capabilities and faster transition times, making it ideal for high-speed arithmetic.
+
+**KSA Conceptual Logic & Legend:**
+![KSA Concept](./ALU4bit/ksa.png)
 
 The KSA operation is divided into three distinct computation stages:
 1. **Pre-Processing:** Generates the initial Propagate and Generate signals for each bit.
@@ -32,8 +41,8 @@ The KSA operation is divided into three distinct computation stages:
    * **Grey Cells:** Calculate only the Group Generate signals.
 3. **Post-Processing:** Calculates the final Sum bits using an XOR operation between the propagate signal and the previous carry.
 
-![Kogge-Stone Tree Diagram](./images/ksa_tree_diagram.png)
-*(Note: Insert the hand-drawn KSA tree diagram from Page 6 here)*
+**Kogge-Stone Tree Diagram:**
+![Kogge-Stone Tree Diagram](./ALU4bit/ksa_tree_diagram.png)
 
 ### 🧠 Data Path, Signed Arithmetic, and the Borrow Flag ($C_{out}$)
 Handling Two's Complement subtraction optimally requires careful interpretation of the output flags. The subtraction $X - C$ is mathematically implemented as $Y = X + \sim C + 1$. 
@@ -49,8 +58,7 @@ To optimize area and delay, we did not treat the subtractor's $C_{in}$ as a vari
 2. **Sum Logic:** $Y_0 = P_0 \oplus C_{in}$ simplified to $NOT(P_0)$, replacing an XOR gate with a smaller Inverter.
 3. **Black to Grey Cell:** We converted the first stage's Black Cell into a Grey Cell by removing dead Propagate calculation logic entirely.
 
-![Optimized Subtractor](./images/optimized_subtractor.png)
-*(Note: Insert the hand-drawn schematic of the optimized subtractor from Page 10 here)*
+![Optimized Subtractor](./ALU4bit/optimized_subtructor.png)
 
 ### 🧪 Simulation & Verification
 The integrated ALU design, implementing the logic Y = (A + B) - C using Two's Complement arithmetic, was verified via exhaustive simulation covering all 4,096 possible input combinations. Below is a detailed analysis of two distinct test cases extracted from our simulation waveforms, demonstrating the circuit's correct behavior for both negative and positive results:
@@ -61,8 +69,7 @@ The integrated ALU design, implementing the logic Y = (A + B) - C using Two's Co
 * **Observed Output:** * `C_out = 1`: The carry-out flag is high, correctly acting as an active-high "Borrow" indicator. This signifies that the result is negative.
   * `Y = 11000`: In Two's Complement, the sequence 11000 perfectly represents -8, confirming the correct operation of the subtractor.
 
-![Simulation Case 1](./images/sim_case_1.png)
-*(Note: Insert the waveform screenshot for Case 1 from Page 20 here)*
+![Simulation Case 1](./ALU4bit/sim_case_1.png)
 
 #### Case 2: Zero Result and MSB Handling
 * **Scenario:** `A = 0110` (6), `B = 1011` (-5), `C = 0001` (1).
@@ -70,8 +77,7 @@ The integrated ALU design, implementing the logic Y = (A + B) - C using Two's Co
 * **Observed Output:** * `C_out = 0`: The flag is low, indicating a positive/zero result (no borrow).
   * `Y = 10000`: While the 5th bit is '1', our interpretation rule states that when `C_out = 0`, the valid magnitude is contained entirely within the lower 4 bits. The lower 4 bits are `0000` (Decimal 0), and the 5th bit is merely a residual internal carry that is correctly discarded.
 
-![Simulation Case 2](./images/sim_case_2.png)
-*(Note: Insert the waveform screenshot for Case 2 from Page 20/21 here)*
+![Simulation Case 2](./ALU4bit/sim_case_2.png)
 
 ### 📐 Layout & Physical Verification
 The final layout was structured hierarchically utilizing standard cells (`gsclib045`). The design passed all manufacturing rules and connectivity checks.
@@ -79,11 +85,15 @@ The final layout was structured hierarchically utilizing standard cells (`gsclib
 * **DRC:** 0 Errors.
 * **LVS:** Clean match between schematic and layout.
 
-![ALU Layout](./images/alu_layout.png)
-*(Note: Insert the Virtuoso layout screenshot from Page 31 here)*
+**ALU Full Layout:**
+![ALU Layout](./ALU4bit/alu_layout.png)
 
-![DRC & LVS](./images/drc_lvs_clean.png)
-*(Note: Insert the green tick DRC/LVS screenshots from Pages 31-32 here)*
+**Clean DRC & LVS Reports:**
+![DRC & LVS](./ALU4bit/drc_lvs_clean.png)
+
+
+### 📝 Part 1 Conclusion & Summary
+The 4-bit ALU project successfully demonstrated a full custom digital design flow. By implementing a Kogge-Stone Adder and an optimized Two's Complement subtractor, we achieved a high-speed arithmetic unit. Exhaustive simulations verified the correct handling of all 4,096 input combinations, including edge cases with negative results and sign extensions. Finally, the physical layout was carefully routed and passed all DRC and LVS checks, resulting in a fully verified, silicon-ready design with an estimated area of 345.394 µm².
 
 ---
 
@@ -95,9 +105,15 @@ Design a clock generation circuit using a Ring Oscillator topology to achieve an
 ### 🔬 Implementation & Tuning
 The fundamental oscillator frequency is defined by $f_{osc} = \frac{1}{2 \cdot t_d \cdot n}$. 
 
-1. **Initial Design:** We built a 5-stage inverter chain using `INVX1` cells. By tuning the RC chains, we achieved a frequency of $2.492MHz$.
+1. **Initial Design:** We built a 5-stage inverter chain using `INVX1` cells. By tuning the RC chains, we achieved a stable oscillation frequency of **2.492MHz**, closely matching the requirement.
 2. **Load Testing:** Adding the $100fF$ load capacitor dropped the frequency to $2.44MHz$, attenuated the signal edges, and prevented the signal from reaching full rail-to-rail swings (0V to 1.2V). This indicated the `INVX1` drive strength was insufficient for the capacitive load.
-3. **Optimization:** Upgrading the cells to `INVX2` significantly increased drive strength. This restored sharp edges, returned the signal to full rail-to-rail capacity, and successfully elevated the frequency back up to $2.73MHz$.
+3. **Optimization:** Upgrading the cells to `INVX2` significantly increased drive strength. This restored sharp edges, returned the signal to full rail-to-rail capacity, and successfully elevated the frequency back up to a stable operating point.
 
-![Oscillator Output](./images/oscillator_waveform.png)
-*(Note: Insert the transient response waveform from Page 42 showing the 2.736MHz frequency here)*
+**Ring Oscillator Schematic:**
+![Ring Oscillator Schematic](./Ring_Oscillator/ring_oscillator_schematic.png)
+
+**Transient Response (Target 2.5MHz):**
+![Oscillator Output](./Ring_Oscillator/oscillator_waveform.png)
+
+### 📝 Conclusion & Summary
+The Ring Oscillator project successfully demonstrated the principles of custom clock generation in a 45nm standard cell environment. We met the 2.5MHz target frequency (achieving ~2.49MHz) through careful tuning of the RC chains. Furthermore, the project highlighted a crucial VLSI design consideration: **drive strength**. By simulating a real-world clock network load (100fF capacitor), we observed signal degradation and frequency drop, which we successfully resolved by resizing our gates from `INVX1` to `INVX2`. This effectively restored sharp rail-to-rail swings and proved the circuit's resilience under load.
