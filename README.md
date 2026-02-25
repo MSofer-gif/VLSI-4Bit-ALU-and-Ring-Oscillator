@@ -23,6 +23,9 @@ The ALU is required to compute the function $Y = A + B - C$.
 **General ALU Architecture:**
 ![Block Diagram](./ALU4bit/block_diagram.png)
 
+**4-Bit Register Sub-Module (D-Flip-Flops):**
+![4-Bit Register](./ALU4bit/4bit_register.png)
+
 **Virtuoso Top-Level Schematic:**
 ![Virtuoso Schematic](./ALU4bit/block_diagram2.png)
 
@@ -40,6 +43,14 @@ The KSA operation is divided into three distinct computation stages:
    * **Black Cells:** Calculate both the Group Generate and Group Propagate signals.
    * **Grey Cells:** Calculate only the Group Generate signals.
 3. **Post-Processing:** Calculates the final Sum bits using an XOR operation between the propagate signal and the previous carry.
+
+**Pre-Processing Cell (Schematic & Layout):**
+![Pre-Process Schematic](./ALU4bit/pre_process_sch.png)
+![Pre-Process Layout](./ALU4bit/pre_process_layout.png)
+
+**Grey Cell (Schematic & Layout):**
+![Grey Cell Schematic](./ALU4bit/grey_cell_sch.png)
+![Grey Cell Layout](./ALU4bit/grey_cell_layout.png)
 
 **Kogge-Stone Tree Diagram:**
 ![Kogge-Stone Tree Diagram](./ALU4bit/ksa_tree_diagram.png)
@@ -59,6 +70,9 @@ To optimize area and delay, we did not treat the subtractor's $C_{in}$ as a vari
 3. **Black to Grey Cell:** We converted the first stage's Black Cell into a Grey Cell by removing dead Propagate calculation logic entirely.
 
 ![Optimized Subtractor](./ALU4bit/optimized_subtructor.png)
+
+**Virtuoso Implementation of the Optimized Subtractor:**
+![Subtractor Schematic](./ALU4bit/subtractor_schematic.png)
 
 ### 🧪 Simulation & Verification
 The integrated ALU design, implementing the logic Y = (A + B) - C using Two's Complement arithmetic, was verified via exhaustive simulation covering all 4,096 possible input combinations. Below is a detailed analysis of two distinct test cases extracted from our simulation waveforms, demonstrating the circuit's correct behavior for both negative and positive results:
@@ -85,7 +99,10 @@ The final layout was structured hierarchically utilizing standard cells (`gsclib
 * **DRC:** 0 Errors.
 * **LVS:** Clean match between schematic and layout.
 
-**ALU Full Layout:**
+**Area Estimation Breakdown:**
+![Area Estimation Table](./ALU4bit/area_estimation.png)
+
+**Adder Core Layout:**
 ![ALU Layout](./ALU4bit/alu_layout.png)
 
 **Clean DRC & LVS Reports:**
