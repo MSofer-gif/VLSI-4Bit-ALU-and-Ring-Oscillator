@@ -48,6 +48,9 @@ The KSA operation is divided into three distinct computation stages:
 ![Pre-Process Schematic](./ALU4bit/pre_process_sch.png)
 ![Pre-Process Layout](./ALU4bit/pre_process_layout.png)
 
+**Black Cell (Schematic):**
+![Black Cell Schematic](./ALU4bit/black_cell_sch.png)
+
 **Grey Cell (Schematic & Layout):**
 ![Grey Cell Schematic](./ALU4bit/grey_cell_sch.png)
 ![Grey Cell Layout](./ALU4bit/grey_cell_layout.png)
